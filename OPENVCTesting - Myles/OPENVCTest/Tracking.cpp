@@ -1,176 +1,236 @@
-﻿#include <cv.h> 
-#include <highgui.h>
-#include <cxcore.h>
+﻿//objectTrackingTutorial.cpp
+
+//Written by  Kyle Hounslow 2013
+
+//Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software")
+//, to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+//and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+//The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+//IN THE SOFTWARE.
+
+#include <sstream>
+#include <string>
+#include <iostream>
+#include <opencv\highgui.h>
+#include <opencv\cv.h>
+
+using namespace cv;
+//initial min and max HSV filter values.
+//these will be changed using trackbars
+int H_MIN = 0;
+int H_MAX = 256;
+int S_MIN = 0;
+int S_MAX = 256;
+int V_MIN = 0;
+int V_MAX = 256;
+//default capture width and height
+const int FRAME_WIDTH = 640;
+const int FRAME_HEIGHT = 480;
+//max number of objects to be detected in frame
+const int MAX_NUM_OBJECTS=50;
+//minimum and maximum object area
+const int MIN_OBJECT_AREA = 20*20;
+const int MAX_OBJECT_AREA = FRAME_HEIGHT*FRAME_WIDTH/1.5;
+//names that will appear at the top of each window
+const string windowName = "Original Image";
+const string windowName1 = "HSV Image";
+const string windowName2 = "Thresholded Image";
+const string windowName3 = "After Morphological Operations";
+const string trackbarWindowName = "Trackbars";
+void on_trackbar( int, void* )
+{//This function gets called whenever a
+	// trackbar position is changed
 
 
-//callback for trackbar. nothing to be done here     
-void on_trackbar(int, void*)
-{
+
+
+
 }
+string intToString(int number){
 
+
+	std::stringstream ss;
+	ss << number;
+	return ss.str();
+}
+void createTrackbars(){
+	//create window for trackbars
+
+
+    namedWindow(trackbarWindowName,0);
+	//create memory to store trackbar name on window
+	char TrackbarName[50];
+	sprintf( TrackbarName, "H_MIN", H_MIN);
+	sprintf( TrackbarName, "H_MAX", H_MAX);
+	sprintf( TrackbarName, "S_MIN", S_MIN);
+	sprintf( TrackbarName, "S_MAX", S_MAX);
+	sprintf( TrackbarName, "V_MIN", V_MIN);
+	sprintf( TrackbarName, "V_MAX", V_MAX);
+	//create trackbars and insert them into window
+	//3 parameters are: the address of the variable that is changing when the trackbar is moved(eg.H_LOW),
+	//the max value the trackbar can move (eg. H_HIGH), 
+	//and the function that is called whenever the trackbar is moved(eg. on_trackbar)
+	//                                  ---->    ---->     ---->      
+    createTrackbar( "H_MIN", trackbarWindowName, &H_MIN, H_MAX, on_trackbar );
+    createTrackbar( "H_MAX", trackbarWindowName, &H_MAX, H_MAX, on_trackbar );
+    createTrackbar( "S_MIN", trackbarWindowName, &S_MIN, S_MAX, on_trackbar );
+    createTrackbar( "S_MAX", trackbarWindowName, &S_MAX, S_MAX, on_trackbar );
+    createTrackbar( "V_MIN", trackbarWindowName, &V_MIN, V_MAX, on_trackbar );
+    createTrackbar( "V_MAX", trackbarWindowName, &V_MAX, V_MAX, on_trackbar );
+
+
+}
+void drawObject(int x, int y,Mat &frame){
+
+	//use some of the openCV drawing functions to draw crosshairs
+	//on your tracked image!
+
+    //UPDATE:JUNE 18TH, 2013
+    //added 'if' and 'else' statements to prevent
+    //memory errors from writing off the screen (ie. (-25,-25) is not within the window!)
+
+	circle(frame,Point(x,y),20,Scalar(0,255,0),2);
+    if(y-25>0)
+    line(frame,Point(x,y),Point(x,y-25),Scalar(0,255,0),2);
+    else line(frame,Point(x,y),Point(x,0),Scalar(0,255,0),2);
+    if(y+25<FRAME_HEIGHT)
+    line(frame,Point(x,y),Point(x,y+25),Scalar(0,255,0),2);
+    else line(frame,Point(x,y),Point(x,FRAME_HEIGHT),Scalar(0,255,0),2);
+    if(x-25>0)
+    line(frame,Point(x,y),Point(x-25,y),Scalar(0,255,0),2);
+    else line(frame,Point(x,y),Point(0,y),Scalar(0,255,0),2);
+    if(x+25<FRAME_WIDTH)
+    line(frame,Point(x,y),Point(x+25,y),Scalar(0,255,0),2);
+    else line(frame,Point(x,y),Point(FRAME_WIDTH,y),Scalar(0,255,0),2);
+
+	putText(frame,intToString(x)+","+intToString(y),Point(x,y+30),1,1,Scalar(0,255,0),2);
+
+}
+void morphOps(Mat &thresh){
+
+	//create structuring element that will be used to "dilate" and "erode" image.
+	//the element chosen here is a 3px by 3px rectangle
+
+	Mat erodeElement = getStructuringElement( MORPH_RECT,Size(3,3));
+    //dilate with larger element so make sure object is nicely visible
+	Mat dilateElement = getStructuringElement( MORPH_RECT,Size(8,8));
+
+	erode(thresh,thresh,erodeElement);
+	erode(thresh,thresh,erodeElement);
+
+
+	dilate(thresh,thresh,dilateElement);
+	dilate(thresh,thresh,dilateElement);
+	
+
+
+}
+void trackFilteredObject(int &x, int &y, Mat threshold, Mat &cameraFeed){
+
+	Mat temp;
+	threshold.copyTo(temp);
+	//these two vectors needed for output of findContours
+	vector< vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	//find contours of filtered image using openCV findContours function
+	findContours(temp,contours,hierarchy,CV_RETR_CCOMP,CV_CHAIN_APPROX_SIMPLE );
+	//use moments method to find our filtered object
+	double refArea = 0;
+	bool objectFound = false;
+	if (hierarchy.size() > 0) {
+		int numObjects = hierarchy.size();
+        //if number of objects greater than MAX_NUM_OBJECTS we have a noisy filter
+        if(numObjects<MAX_NUM_OBJECTS){
+			for (int index = 0; index >= 0; index = hierarchy[index][0]) {
+
+				Moments moment = moments((cv::Mat)contours[index]);
+				double area = moment.m00;
+
+				//if the area is less than 20 px by 20px then it is probably just noise
+				//if the area is the same as the 3/2 of the image size, probably just a bad filter
+				//we only want the object with the largest area so we safe a reference area each
+				//iteration and compare it to the area in the next iteration.
+                if(area>MIN_OBJECT_AREA && area<MAX_OBJECT_AREA && area>refArea){
+					x = moment.m10/area;
+					y = moment.m01/area;
+					objectFound = true;
+					refArea = area;
+				}else objectFound = false;
+
+
+			}
+			//let user know you found an object
+			if(objectFound ==true){
+				putText(cameraFeed,"Tracking Object",Point(0,50),2,1,Scalar(0,255,0),2);
+				//draw object location on screen
+				drawObject(x,y,cameraFeed);}
+
+		}else putText(cameraFeed,"TOO MUCH NOISE! ADJUST FILTER",Point(0,50),1,2,Scalar(0,0,255),2);
+	}
+}
 int main(int argc, char* argv[])
 {
-	int height, width, step, channels;  //parameters of the image we are working on
-	int i, j, k, t1min = 0, t1max = 0, t2min = 0, t2max = 0, t3min = 0, t3max = 0; // other variables used
+	//some boolean variables for different functionality within this
+	//program
+    bool trackObjects = false;
+    bool useMorphOps = false;
+	//Matrix to store each frame of the webcam feed
+	Mat cameraFeed;
+	//matrix storage for HSV image
+	Mat HSV;
+	//matrix storage for binary threshold image
+	Mat threshold;
+	//x and y values for the location of the object
+	int x=0, y=0;
+	//create slider bars for HSV filtering
+	createTrackbars();
+	//video capture object to acquire webcam feed
+	VideoCapture capture;
+	//open capture object at location zero (default location for webcam)
+	capture.open(0);
+	//set height and width of capture frame
+	capture.set(CV_CAP_PROP_FRAME_WIDTH,FRAME_WIDTH);
+	capture.set(CV_CAP_PROP_FRAME_HEIGHT,FRAME_HEIGHT);
+	//start an infinite loop where webcam feed is copied to cameraFeed matrix
+	//all of our operations will be performed within this loop
+	while(1){
+		//store image to matrix
+		capture.read(cameraFeed);
+		//convert frame from BGR to HSV colorspace
+		cvtColor(cameraFeed,HSV,COLOR_BGR2HSV);
+		//filter HSV image between values and store filtered image to
+		//threshold matrix
+		inRange(HSV,Scalar(H_MIN,S_MIN,V_MIN),Scalar(H_MAX,S_MAX,V_MAX),threshold);
+		//perform morphological operations on thresholded image to eliminate noise
+		//and emphasize the filtered object(s)
+		if(useMorphOps)
+		morphOps(threshold);
+		//pass in thresholded frame to our object tracking function
+		//this function will return the x and y coordinates of the
+		//filtered object
+		if(trackObjects)
+			trackFilteredObject(x,y,threshold,cameraFeed);
 
+		//show frames 
+		imshow(windowName2,threshold);
+		imshow(windowName,cameraFeed);
+		imshow(windowName1,HSV);
+		
 
-	CvMat* threshold_matrix = cvCreateMat(2, 3, CV_32FC1);
-
-	CvFileStorage* temp = cvOpenFileStorage("threshold_matrix.xml", NULL, CV_STORAGE_READ);
-
-	// Load the previous values of the threshold if they exist
-	if (temp)
-	{
-		threshold_matrix = (CvMat*)cvLoad("threshold_matrix.xml");
-		t1min = (int)CV_MAT_ELEM(*threshold_matrix, float, 0, 0); t2min = (int)CV_MAT_ELEM(*threshold_matrix, float, 0, 1); t3min = (int)CV_MAT_ELEM(*threshold_matrix, float, 0, 2);
-		t1max = (int)CV_MAT_ELEM(*threshold_matrix, float, 1, 0); t2max = (int)CV_MAT_ELEM(*threshold_matrix, float, 1, 1); t3max = (int)CV_MAT_ELEM(*threshold_matrix, float, 1, 2);
+		//delay 30ms so that screen can refresh.
+		//image will not appear without this waitKey() command
+		waitKey(30);
 	}
 
-	// Open capture device. 0 is /dev/video0, 1 is /dev/video1, etc.
-	CvCapture* capture = cvCaptureFromCAM(1);
-
-	if (!capture)
-	{
-		fprintf(stderr, "ERROR: capture is NULL \n");
-		getchar();
-		return -1;
-	}
-	// grab an image from the capture
-	IplImage* frame = cvQueryFrame(capture);
-
-	// Create a window in which the captured images will be presented
-	cvNamedWindow("Camera", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("HSV", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("F1", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("F2", CV_WINDOW_AUTOSIZE);
-	cvNamedWindow("F3", CV_WINDOW_AUTOSIZE);
-	//cvNamedWindow( "EdgeDetection", CV_WINDOW_AUTOSIZE );
-
-	/// Create Trackbars
-	char TrackbarName1[50] = "t1min";
-	char TrackbarName2[50] = "t1max";
-	char TrackbarName3[50] = "t2min";
-	char TrackbarName4[50] = "t2max";
-	char TrackbarName5[50] = "t3min";
-	char TrackbarName6[50] = "t3max";
-
-	cvCreateTrackbar(TrackbarName1, "F1", &t1min, 260, NULL);
-	cvCreateTrackbar(TrackbarName2, "F1", &t1max, 260, NULL);
-
-	cvCreateTrackbar(TrackbarName3, "F2", &t2min, 260, NULL);
-	cvCreateTrackbar(TrackbarName4, "F2", &t2max, 260, NULL);
-
-	cvCreateTrackbar(TrackbarName5, "F3", &t3min, 260, NULL);
-	cvCreateTrackbar(TrackbarName6, "F3", &t3max, 260, NULL);
-
-	// Load threshold from the slider bars in these 2 parameters
-	CvScalar hsv_min = cvScalar(t1min, t2min, t3min, 0);
-	CvScalar hsv_max = cvScalar(t1max, t2max, t3max, 0);
-
-	// get the image data
-	height = frame->height;
-	width = frame->width;
-	step = frame->widthStep;
-
-	// capture size - 
-	CvSize size = cvSize(width, height);
-
-	// Initialize different images that are going to be used in the program
-	IplImage*  hsv_frame = cvCreateImage(size, IPL_DEPTH_8U, 3); // image converted to HSV plane
-	IplImage*  thresholded = cvCreateImage(size, IPL_DEPTH_8U, 1); // final thresholded image
-	IplImage*  thresholded1 = cvCreateImage(size, IPL_DEPTH_8U, 1); // Component image threshold
-	IplImage*  thresholded2 = cvCreateImage(size, IPL_DEPTH_8U, 1);
-	IplImage*  thresholded3 = cvCreateImage(size, IPL_DEPTH_8U, 1);
-	IplImage*  filtered = cvCreateImage(size, IPL_DEPTH_8U, 1);  //smoothed image
-
-
-	while (1)
-	{
-		// Load threshold from the slider bars in these 2 parameters
-		hsv_min = cvScalar(t1min, t2min, t3min, 0);
-		hsv_max = cvScalar(t1max, t2max, t3max, 0);
-
-		// Get one frame
-		frame = cvQueryFrame(capture);
-
-		if (!frame)
-		{
-			fprintf(stderr, "ERROR: frame is null...\n");
-			getchar();
-			break;
-		}
-
-		// Covert color space to HSV as it is much easier to filter colors in the HSV color-space.
-		cvCvtColor(frame, hsv_frame, CV_BGR2HSV);
-
-		// Filter out colors which are out of range.
-		cvInRangeS(hsv_frame, hsv_min, hsv_max, thresholded);
-
-		// the below lines of code is for visual purpose only remove after calibration 
-		//--------------FROM HERE-----------------------------------
-		//Split image into its 3 one dimensional images
-		cvSplit(hsv_frame, thresholded1, thresholded2, thresholded3, NULL);
-
-		// Filter out colors which are out of range.
-		cvInRangeS(thresholded1, cvScalar(t1min, 0, 0, 0), cvScalar(t1max, 0, 0, 0), thresholded1);
-		cvInRangeS(thresholded2, cvScalar(t2min, 0, 0, 0), cvScalar(t2max, 0, 0, 0), thresholded2);
-		cvInRangeS(thresholded3, cvScalar(t3min, 0, 0, 0), cvScalar(t3max, 0, 0, 0), thresholded3);
-
-		//-------------REMOVE OR COMMENT AFTER CALIBRATION TILL HERE ------------------
-
-
-		// Memory for hough circles
-		CvMemStorage* storage = cvCreateMemStorage(0);
-
-		// hough detector works better with some smoothing of the image
-		cvSmooth(thresholded, thresholded, CV_GAUSSIAN, 9, 9);
-
-		//hough transform to detect circle
-		CvSeq* circles = cvHoughCircles(thresholded, storage, CV_HOUGH_GRADIENT, 2,
-			thresholded->height / 4, 100, 50, 10, 400);
-
-		for (int i = 0; i < circles->total; i++)
-		{   //get the parameters of circles detected
-			float* p = (float*)cvGetSeqElem(circles, i);
-			printf("Ball! x=%f y=%f r=%f\n\r", p[0], p[1], p[2]);
-
-			// draw a circle with the centre and the radius obtained from the hough transform
-			cvCircle(frame, cvPoint(cvRound(p[0]), cvRound(p[1])),  //plot centre
-				2, CV_RGB(255, 255, 255), -1, 8, 0);
-			cvCircle(frame, cvPoint(cvRound(p[0]), cvRound(p[1])),  //plot circle
-				cvRound(p[2]), CV_RGB(0, 255, 0), 2, 8, 0);
-		}
-
-		/* for testing purpose you can show all the images but when done with calibration
-		only show frame to keep the screen clean  */
-
-		cvShowImage("Camera", frame); // Original stream with detected ball overlay
-		cvShowImage("HSV", hsv_frame); // Original stream in the HSV color space
-		cvShowImage("After Color Filtering", thresholded); // The stream after color filtering
-		cvShowImage("F1", thresholded1); // individual filters
-		cvShowImage("F2", thresholded2);
-		cvShowImage("F3", thresholded3);
-
-		//cvShowImage( "filtered", thresholded );
 
 
 
-		cvReleaseMemStorage(&storage);
 
 
-		//If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
-		//remove higher bits using AND operator
-		if ((cvWaitKey(10) & 255) == 27) break;
-	}
-
-	//Save the threshold values before exiting
-	*((float*)CV_MAT_ELEM_PTR(*threshold_matrix, 0, 0)) = t1min; *((float*)CV_MAT_ELEM_PTR(*threshold_matrix, 0, 1)) = t2min; *((float*)CV_MAT_ELEM_PTR(*threshold_matrix, 0, 2)) = t3min;
-	*((float*)CV_MAT_ELEM_PTR(*threshold_matrix, 1, 0)) = t1max; *((float*)CV_MAT_ELEM_PTR(*threshold_matrix, 1, 1)) = t2max; *((float*)CV_MAT_ELEM_PTR(*threshold_matrix, 1, 2)) = t3max;
-	cvSave("threshold_matrix.xml", threshold_matrix);
-
-
-	// Release the capture device housekeeping
-	cvReleaseCapture(&capture);
-	cvDestroyWindow("mywindow");
 	return 0;
 }
