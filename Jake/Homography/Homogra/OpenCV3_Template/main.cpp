@@ -9,13 +9,13 @@ using namespace cv;
 using namespace std;
 
 // We need 4 corresponding 2D points(x,y) to calculate homography.
-vector<Point2f> left_image;      // Stores 4 points(x,y) of the logo image. Here the four points are 4 corners of image.
-vector<Point2f> right_image;    // stores 4 points that the user clicks(mouse left click) in the main image.
-vector<Point2f> cut_image;
+vector<Point2f> imageCourtTemplatePoints;      // Stores 4 points(x,y) of the Court Template. Here the four points are 4 corners of image.
+vector<Point2f> imageCourtPlayersPoints;    // stores 4 points that the user clicks(mouse left click) in the main image.
+vector<Point2f> court_Points;
 								// Image containers for main and logo image
-Mat imageMain;
-Mat imageLogo;
-Mat src;
+Mat imageCourtPlayers;
+Mat imageCourtTemplate;
+Mat imageCourtPlayersCopy;
 
 
 // Function to add main image and transformed logo image and show final output.
@@ -43,65 +43,67 @@ void on_mouse(int e, int x, int y, int d, void *ptr)
 {
 	if (e == EVENT_LBUTTONDOWN)
 	{
-		if (right_image.size() < 4)
+		if (imageCourtPlayersPoints.size() < 4)
 		{
 
-			right_image.push_back(Point2f(float(x), float(y)));
+			imageCourtPlayersPoints.push_back(Point2f(float(x), float(y)));
 			cout << x << " " << y << endl;
 		}
 		else
 		{
 			cout << " Calculating Homography " << endl;
-			Mat cutimg;
-			cutimg = imageMain(Rect(177, 450, 800, 300));
-			namedWindow("cutimg", WINDOW_AUTOSIZE);
 			
-			Mat black(src.rows, src.cols, src.type(), cv::Scalar::all(0));
-			Mat mask(src.rows, src.cols, CV_8UC1, cv::Scalar(0));
+			
+
+			// Create a black image
+			Mat black(imageCourtPlayersCopy.rows, imageCourtPlayersCopy.cols, imageCourtPlayersCopy.type(), cv::Scalar::all(0));
+			// create a white mask
+			Mat mask(imageCourtPlayersCopy.rows, imageCourtPlayersCopy.cols, CV_8UC1, cv::Scalar(0));
+
+			// Get the coordiantes of the polygon (court area we want) from the mouse clicks
 			vector< vector<Point> >  co_ordinates;
 			co_ordinates.push_back(vector<Point>());
-			co_ordinates[0].push_back(right_image[0]);
-			co_ordinates[0].push_back(right_image[1]);
-			co_ordinates[0].push_back(right_image[2]);
-			co_ordinates[0].push_back(right_image[3]);
+			co_ordinates[0].push_back(imageCourtPlayersPoints[0]);
+			co_ordinates[0].push_back(imageCourtPlayersPoints[1]);
+			co_ordinates[0].push_back(imageCourtPlayersPoints[2]);
+			co_ordinates[0].push_back(imageCourtPlayersPoints[3]);
 			drawContours(mask, co_ordinates, 0, Scalar(255), CV_FILLED, 8);
-			black.copyTo(src, mask);
+			black.copyTo(imageCourtPlayersCopy, mask);
 
+			// create a new image with the mask on the court 
 			Mat dst1;
-			imageMain.copyTo(dst1, mask);
+			imageCourtPlayers.copyTo(dst1, mask);
+			
+			// Do some stuff to and store the ROI in result 
 			Mat dst2;
 			//bitwise_not(mask, mask);
 			dst1.copyTo(dst2, mask);
-			Mat result = dst1 + dst2;
+			Mat ROI_result = dst1 + dst2;
 
 			namedWindow("black", WINDOW_AUTOSIZE);
-			imshow("black", result);
+			imshow("black", ROI_result);
 
-			imshow("cutimg", cutimg);
+		
 			// Push the 4 corners of the logo image as the 4 points for correspondence to calculate homography.
-			cut_image.push_back(right_image[0]);
-			cut_image.push_back(right_image[1]);
-			cut_image.push_back(right_image[2]);
-			cut_image.push_back(right_image[3]);
+			court_Points.push_back(imageCourtPlayersPoints[0]);
+			court_Points.push_back(imageCourtPlayersPoints[1]);
+			court_Points.push_back(imageCourtPlayersPoints[2]);
+			court_Points.push_back(imageCourtPlayersPoints[3]);
 
-
-			
-			
+						
 
 			// Deactivate callback
 			cv::setMouseCallback("Display window", NULL, NULL);
 			// once we get 4 corresponding points in both images calculate homography matrix
-			Mat h1 = findHomography(cut_image, left_image, 0);
-			Mat H = findHomography(left_image, right_image, 0);
+			Mat H = findHomography(court_Points, imageCourtTemplatePoints, 0);
 			Mat logoWarped;
-			Mat cutWarped;
+			Mat HomoResult;
 
-			warpPerspective(result, cutWarped, h1, imageLogo.size());
+			warpPerspective(ROI_result, HomoResult, H, imageCourtTemplate.size());
 			// Warp the logo image to change its perspective
-			warpPerspective(imageLogo, logoWarped, H, imageMain.size());
-			//showFinal(imageMain, logoWarped);
+			
 
-			showFinal(imageLogo, cutWarped);
+			showFinal(imageCourtTemplate, HomoResult);
 		}
 
 	}
@@ -119,21 +121,21 @@ int main(int argc, char** argv)
 
 
 	// Load images from arguments passed.
-	imageMain = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-	imageLogo = imread(argv[2], CV_LOAD_IMAGE_COLOR);
-	src = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	imageCourtPlayers = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+	imageCourtTemplate = imread(argv[2], CV_LOAD_IMAGE_COLOR);
+	imageCourtPlayersCopy = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 	// Push the 4 corners of the logo image as the 4 points for correspondence to calculate homography.
-	left_image.push_back(Point2f(float(0), float(0)));
-	left_image.push_back(Point2f(float(0), float(imageLogo.rows)));
-	left_image.push_back(Point2f(float(imageLogo.cols), float(imageLogo.rows)));
-	left_image.push_back(Point2f(float(imageLogo.cols), float(0)));
+	imageCourtTemplatePoints.push_back(Point2f(float(0), float(0)));
+	imageCourtTemplatePoints.push_back(Point2f(float(0), float(imageCourtTemplate.rows)));
+	imageCourtTemplatePoints.push_back(Point2f(float(imageCourtTemplate.cols), float(imageCourtTemplate.rows)));
+	imageCourtTemplatePoints.push_back(Point2f(float(imageCourtTemplate.cols), float(0)));
 
 
 
 	namedWindow("Display window", WINDOW_AUTOSIZE);// Create a window for display.
-	imshow("Display window", imageMain);
+	imshow("Display window", imageCourtPlayers);
 	namedWindow("Display window1", WINDOW_AUTOSIZE);// Create a window for display.
-	imshow("Display window1", imageLogo);
+	imshow("Display window1", imageCourtTemplate);
 
 	setMouseCallback("Display window", on_mouse, NULL);
 
