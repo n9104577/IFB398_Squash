@@ -1,18 +1,2 @@
 ﻿  main.cpp
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(54): warning C4474: 'sprintf' : too many arguments passed for format string
-  c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(54): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(54): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(55): warning C4474: 'sprintf' : too many arguments passed for format string
-  c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(55): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(55): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(56): warning C4474: 'sprintf' : too many arguments passed for format string
-  c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(56): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(56): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(57): warning C4474: 'sprintf' : too many arguments passed for format string
-  c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(57): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-c:\users\jcarm\onedrive\desktop\capstoneversion1\opencv3_template\main.cpp(57): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
-  OpenCV3_Template.vcxproj -> C:\Users\jcarm\OneDrive\Desktop\CapstoneVersion1\x64\Debug\OpenCV3_Template.exe
+  OpenCV3_Template.vcxproj -> C:\Users\Jake\Documents\GitHub\IFB398_Squash\Jake\CapstoneVersion1\x64\Debug\OpenCV3_Template.exe
