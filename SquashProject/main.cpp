@@ -23,6 +23,10 @@ const int MIN_OBJECT_AREA = 2000;
 const bool usingMorph = false;
 
 //Varibles
+Ptr<BackgroundSubtractor> model;
+//BackgroundSubtractorMOG2 * model;
+Mat fgmask;
+
 int D_MIN = 1;
 int D_MAX = 30;
 int E_MIN = 1;
@@ -106,11 +110,12 @@ int main(void) {
 	string bg = "Background.mp4";
 
 	//Varialbes
-	Ptr<BackgroundSubtractor> model = createBackgroundSubtractorMOG2().dynamicCast<BackgroundSubtractor>();
+	model = createBackgroundSubtractorMOG2().dynamicCast<BackgroundSubtractor>();
 	Mat frame, Pframe, background;
 
 	//Footage
 	VideoCapture cap(file);
+	
 
 	// Check if camera opened successfully
 	if (!cap.isOpened()) {
@@ -127,10 +132,11 @@ int main(void) {
 		if (frame.empty()) break;
 
 		//Resize Frame
-		resize(frame, frame, Size(640, 480));
+		resize(frame, frame, Size(769, 576));
 
 		//Apply Mask
 		model->apply(frame, Pframe);
+		//threshold(Pframe, Pframe, 174, 276, THRESH_BINARY);
 
 		//Apply Morphological Functions
 		morphFrame(Pframe);
