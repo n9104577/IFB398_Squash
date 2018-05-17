@@ -12,10 +12,12 @@ class Blob {
 public:
 	// member variables ///////////////////////////////////////////////////////////////////////////
 	std::vector<cv::Point> currentContour;
-
+	
 	cv::Rect currentBoundingRect;
 
 	std::vector<cv::Point> centerPositions;
+
+
 
 	double dblCurrentDiagonalSize;
 	double dblCurrentAspectRatio;
@@ -32,6 +34,7 @@ public:
 	Blob(std::vector<cv::Point> _contour);
 	void predictNextPosition(void);
 
+	cv::Point getBottom(void);
 };
 
 #endif    // MY_BLOB

@@ -6,10 +6,7 @@
 #include "opencv2/videoio.hpp"
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
-
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 #include <iostream>
 #include <limits>
@@ -38,9 +35,11 @@ vector<Point2f> imageCourtTemplatePoints;
 vector<Point2f> imageCourtPlayersPoints;  
 vector<Point2f> court_Points;
 
-Mat imageCourtPlayers = imread("squashCourt.png", CV_LOAD_IMAGE_COLOR);
-Mat imageCourtTemplate = imread("squashCourtTop.jpg", CV_LOAD_IMAGE_COLOR);
-Mat imageCourtPlayersCopy = imread("squashCourt.png", CV_LOAD_IMAGE_COLOR);
+Mat imageCourtPlayersCopyblack;
+Mat tracklines;
+Mat imageCourtPlayers;
+Mat imageCourtTemplate;
+Mat imageCourtPlayersCopy;
 Mat ROI_result;
 Mat H;
 // Globals 
@@ -79,15 +78,18 @@ void drawAndShowContours(cv::Size imageSize, std::vector<Blob> blobs, std::strin
 void drawBlobInfoOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy);
 void analyseVideo(char* video);
 void on_mouse(int e, int x, int y, int d, void *ptr);
-
+void drawBlobBottomOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy);
 
 int main(int argc, char* argv[]) {
 	imageCourtPlayers = imread("squashCourt.png", CV_LOAD_IMAGE_COLOR);
 	imageCourtTemplate = imread("squashCourtTop.jpg", CV_LOAD_IMAGE_COLOR);
 	imageCourtPlayersCopy = imread("squashCourt.png", CV_LOAD_IMAGE_COLOR);
+
 	resize(imageCourtPlayers, imageCourtPlayers, Size(768, 576));
-	resize(imageCourtTemplate, imageCourtTemplate, Size(768, 576));
+	//resize(imageCourtTemplate, imageCourtTemplate, Size(768, 576));
 	resize(imageCourtPlayersCopy, imageCourtPlayersCopy, Size(768, 576));
+	Mat black(imageCourtPlayersCopy.rows, imageCourtPlayersCopy.cols, imageCourtPlayersCopy.type(), Scalar(255, 255, 255, 0));
+	imageCourtPlayersCopyblack = black;
 	// Push the 4 corners of the logo image as the 4 points for correspondence to calculate homography.
 	imageCourtTemplatePoints.push_back(Point2f(float(0), float(0)));
 	imageCourtTemplatePoints.push_back(Point2f(float(0), float(imageCourtTemplate.rows)));
@@ -208,6 +210,8 @@ void analyseVideo(char* video) {
 		cv::Mat imgThreshCopy = MOG2FgMask.clone();
 		cv::findContours(imgThreshCopy, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
 		//drawAndShowContours(fgMaskMOG2.size(), contours, "imgContours");
+		
+		
 		std::vector<std::vector<cv::Point> > convexHulls(contours.size());
 
 		for (unsigned int i = 0; i < contours.size(); i++) {
@@ -219,7 +223,7 @@ void analyseVideo(char* video) {
 		for (auto &convexHull : convexHulls) {
 			Blob possibleBlob(convexHull);
 
-			if (possibleBlob.currentBoundingRect.area() > 6000) {
+			if (possibleBlob.currentBoundingRect.area() > 5000) {
 				cerr << "blob area: " << possibleBlob.currentBoundingRect.area() << endl;
 				currentFrameBlobs.push_back(possibleBlob);
 			}
@@ -242,12 +246,21 @@ void analyseVideo(char* video) {
 		imgFrame2Copy = frame.clone();          // get another copy of frame 2 since we changed the previous frame 2 copy in the processing above
 
 		drawBlobInfoOnImage(blobs, imgFrame2Copy);
-
+		drawBlobBottomOnImage(blobs, imgFrame2Copy);
 		cv::imshow("imgFrame2Copy", imgFrame2Copy);
 
+		drawBlobBottomOnImage(blobs, imageCourtPlayersCopyblack);
+		//drawBlobInfoOnImage(blobs, imageCourtPlayersCopy);
+		cv::imshow("tracklines", imageCourtPlayersCopyblack);
+		
+		
+
+
+
+		
 		// Homography
-		Mat homoFrame = frame.clone();
-		Mat homoFrameClone = frame.clone();
+		Mat homoFrame = imageCourtPlayersCopyblack.clone();
+		Mat homoFrameClone = imageCourtPlayersCopyblack.clone();
 		// Create a black image
 		Mat black(homoFrameClone.rows, homoFrameClone.cols, homoFrameClone.type(), cv::Scalar::all(0));
 		// create a white mask
@@ -286,6 +299,11 @@ void analyseVideo(char* video) {
 		namedWindow("RESULTS", WINDOW_AUTOSIZE);
 		cv::imshow("RESULTS", HomoResult);
 
+		Mat transparentResult;
+
+		imageCourtTemplate.copyTo(transparentResult, HomoResult);
+		namedWindow("trans", WINDOW_AUTOSIZE);
+		cv::imshow("trans", transparentResult);
 		//showFinal(imageCourtTemplate, HomoResult);
 
 
@@ -367,8 +385,9 @@ void drawBlobInfoOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy) {
 	for (unsigned int i = 0; i < blobs.size(); i++) {
 
 		if (blobs[i].blnStillBeingTracked == true) {
+			
 			cv::rectangle(imgFrame2Copy, blobs[i].currentBoundingRect, SCALAR_RED, 2);
-
+			
 			int intFontFace = CV_FONT_HERSHEY_SIMPLEX;
 			double dblFontScale = blobs[i].dblCurrentDiagonalSize / 60.0;
 			int intFontThickness = (int)std::round(dblFontScale * 1.0);
@@ -378,6 +397,21 @@ void drawBlobInfoOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy) {
 	}
 }
 
+void drawBlobBottomOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy) {
+
+	for (unsigned int i = 0; i < blobs.size(); i++) {
+
+		if (blobs[i].blnStillBeingTracked == true) {
+			Point points = blobs[i].getBottom();
+			cv::circle(imgFrame2Copy, points, 5, SCALAR_RED, FILLED);
+			int intFontFace = CV_FONT_HERSHEY_SIMPLEX;
+			double dblFontScale = blobs[i].dblCurrentDiagonalSize / 60.0;
+			int intFontThickness = (int)std::round(dblFontScale * 1.0);
+
+			//cv::putText(imgFrame2Copy, std::to_string(i), blobs[i].centerPositions.back(), intFontFace, dblFontScale, SCALAR_GREEN, intFontThickness);
+		}
+	}
+}
 
 
 void addBlobToExistingBlobs(Blob &currentFrameBlob, std::vector<Blob> &existingBlobs, int &intIndex) {

@@ -1,19 +1,24 @@
 // Blob.cpp
 
 #include "Blob.h"
-
+cv::Point currentBottom;
+cv::Point currentCenter;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 Blob::Blob(std::vector<cv::Point> _contour) {
 
 	currentContour = _contour;
 
 	currentBoundingRect = cv::boundingRect(currentContour);
-
-	cv::Point currentCenter;
+	
+	
 
 	currentCenter.x = (currentBoundingRect.x + currentBoundingRect.x + currentBoundingRect.width) / 2;
 	currentCenter.y = (currentBoundingRect.y + currentBoundingRect.y + currentBoundingRect.height) / 2;
+	
+	currentBottom.x = currentCenter.x;
+	currentBottom.y = (currentBoundingRect.y + currentBoundingRect.y + currentBoundingRect.height);
 
+		
 	centerPositions.push_back(currentCenter);
 
 	dblCurrentDiagonalSize = sqrt(pow(currentBoundingRect.width, 2) + pow(currentBoundingRect.height, 2));
@@ -24,6 +29,10 @@ Blob::Blob(std::vector<cv::Point> _contour) {
 	blnCurrentMatchFoundOrNewBlob = true;
 
 	intNumOfConsecutiveFramesWithoutAMatch = 0;
+}
+
+cv::Point Blob::getBottom() {
+	return currentCenter;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +114,4 @@ void Blob::predictNextPosition(void) {
 	}
 
 }
-
-
-
 
