@@ -73,7 +73,10 @@ void on_mouse(int e, int x, int y, int d, void *ptr)
 			// create a new image with the mask on the court 
 			Mat dst1;
 			imageCourtPlayers.copyTo(dst1, mask);
-			
+			namedWindow("black", WINDOW_AUTOSIZE);
+			imshow("black", imageCourtPlayers);
+
+
 			// Do some stuff to and store the ROI in result 
 			Mat dst2;
 			//bitwise_not(mask, mask);
@@ -84,18 +87,11 @@ void on_mouse(int e, int x, int y, int d, void *ptr)
 			imshow("black", ROI_result);
 
 		
-			// Push the 4 corners of the logo image as the 4 points for correspondence to calculate homography.
-			court_Points.push_back(imageCourtPlayersPoints[0]);
-			court_Points.push_back(imageCourtPlayersPoints[1]);
-			court_Points.push_back(imageCourtPlayersPoints[2]);
-			court_Points.push_back(imageCourtPlayersPoints[3]);
-
-						
 
 			// Deactivate callback
 			cv::setMouseCallback("Display window", NULL, NULL);
 			// once we get 4 corresponding points in both images calculate homography matrix
-			Mat H = findHomography(court_Points, imageCourtTemplatePoints, 0);
+			Mat H = findHomography(imageCourtPlayersPoints, imageCourtTemplatePoints, 0);
 			Mat logoWarped;
 			Mat HomoResult;
 
