@@ -42,6 +42,7 @@ Mat imageCourtTemplate;
 Mat imageCourtPlayersCopy;
 Mat ROI_result;
 Mat H;
+
 // Globals 
 Mat frame; // Store the current Frame
 Mat MOG2FgMask; // MOG2 Mask
@@ -61,33 +62,37 @@ void onTrackbar(int, void*) {
 }
 void createTrackbar(void);
 
-// Scalars *** Remove these ***
-const cv::Scalar SCALAR_BLACK = cv::Scalar(0.0, 0.0, 0.0);
-const cv::Scalar SCALAR_WHITE = cv::Scalar(255.0, 255.0, 255.0);
-const cv::Scalar SCALAR_YELLOW = cv::Scalar(0.0, 255.0, 255.0);
-const cv::Scalar SCALAR_GREEN = cv::Scalar(0.0, 200.0, 0.0);
-const cv::Scalar SCALAR_RED = cv::Scalar(0.0, 0.0, 255.0);
+// Scalars
+const Scalar SCALAR_BLACK = Scalar(0.0, 0.0, 0.0);
+const Scalar SCALAR_WHITE = Scalar(255.0, 255.0, 255.0);
+const Scalar SCALAR_YELLOW = Scalar(0.0, 255.0, 255.0);
+const Scalar SCALAR_GREEN = Scalar(0.0, 200.0, 0.0);
+const Scalar SCALAR_RED = Scalar(0.0, 0.0, 255.0);
 
-// function prototypes   *** REWRITE THESES ***
-void matchCurrentFrameBlobsToExistingBlobs(std::vector<Blob> &existingBlobs, std::vector<Blob> &currentFrameBlobs);
-void addBlobToExistingBlobs(Blob &currentFrameBlob, std::vector<Blob> &existingBlobs, int &intIndex);
-void addNewBlob(Blob &currentFrameBlob, std::vector<Blob> &existingBlobs);
-double distanceBetweenPoints(cv::Point point1, cv::Point point2);
-void drawAndShowContours(cv::Size imageSize, std::vector<std::vector<cv::Point> > contours, std::string strImageName);
-void drawAndShowContours(cv::Size imageSize, std::vector<Blob> blobs, std::string strImageName);
-void drawBlobInfoOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy);
+//Function Stubs
+void matchCurrentFrameBlobsToExistingBlobs(vector<Blob> &existingBlobs, vector<Blob> &currentFrameBlobs);
+void addBlobToExistingBlobs(Blob &currentFrameBlob, vector<Blob> &existingBlobs, int &intIndex);
+void addNewBlob(Blob &currentFrameBlob, vector<Blob> &existingBlobs);
+double distanceBetweenPoints(Point point1, Point point2);
+void drawAndShowContours(Size imageSize, vector<vector<Point> > contours, string strImageName);
+void drawAndShowContours(Size imageSize, vector<Blob> blobs, string strImageName);
+void drawBlobInfoOnImage(vector<Blob> &blobs, Mat &imgFrame2Copy);
 void analyseVideo(char* video);
 void on_mouse(int e, int x, int y, int d, void *ptr);
-void drawBlobBottomOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy);
+void drawBlobBottomOnImage(vector<Blob> &blobs, Mat &imgFrame2Copy);
 
-int main(int argc, char* argv[]) {
+
+int main(void) {
 	imageCourtPlayers = imread("squashCourt.png", CV_LOAD_IMAGE_COLOR);
 	imageCourtTemplate = imread("squashCourtTop.jpg", CV_LOAD_IMAGE_COLOR);
 	imageCourtPlayersCopy = imread("squashCourt.png", CV_LOAD_IMAGE_COLOR);
 
+	//Resize Images
 	resize(imageCourtPlayers, imageCourtPlayers, Size(768, 576));
 	//resize(imageCourtTemplate, imageCourtTemplate, Size(768, 576));
 	resize(imageCourtPlayersCopy, imageCourtPlayersCopy, Size(768, 576));
+
+
 	Mat black(imageCourtPlayersCopy.rows, imageCourtPlayersCopy.cols, imageCourtPlayersCopy.type(), Scalar(255, 255, 255, 0));
 	imageCourtPlayersCopyblack = black;
 	// Push the 4 corners of the logo image as the 4 points for correspondence to calculate homography.
@@ -109,22 +114,16 @@ int main(int argc, char* argv[]) {
 	setMouseCallback("Display window", on_mouse, NULL);
 	cout << " Click the four corners of the court starting from top left going counter clockwise " << endl;
 	cout << " Click any where on the fifth click " << endl;
-	while (1)
-	{
+	while (1) {
 		int key = cvWaitKey(10);
 		if (key == 27) break;
 	}
-		
-	
-	
 	
 	analyseVideo(video);
-	
-	
 	destroyAllWindows();
 	return EXIT_SUCCESS;
-
 }
+
 
 void showFinal(Mat src1, Mat src2)
 {
@@ -143,6 +142,7 @@ void showFinal(Mat src1, Mat src2)
 
 }
 
+
 void on_mouse(int e, int x, int y, int d, void *ptr) {
 
 	if (e == EVENT_LBUTTONDOWN) {
@@ -151,20 +151,15 @@ void on_mouse(int e, int x, int y, int d, void *ptr) {
 			cout << x << " " << y << endl;
 		}
 		else {
-			cout << " Press ESC to continue " << endl;
-			
+			cout << " Press ESC to continue " << endl;	
 			// Deactivate callback
-			cv::setMouseCallback("Display window", NULL, NULL);
+			setMouseCallback("Display window", NULL, NULL);
 			// once we get 4 corresponding points in both images calculate homography matrix
-			H = findHomography(imageCourtPlayersPoints, imageCourtTemplatePoints, 0);
-
-			
+			H = findHomography(imageCourtPlayersPoints, imageCourtTemplatePoints, 0);	
 		}
 	}
 	
 }
-
-
 
 void analyseVideo(char* video) {
 	//create the capture object
@@ -177,7 +172,6 @@ void analyseVideo(char* video) {
 
 	// Create blobs vector
 	vector<Blob> blobs;
-
 	bool blnFirstFrame = true;
 
 	//loop through each frame of the video. ESC or 'q' for quitting
@@ -189,7 +183,7 @@ void analyseVideo(char* video) {
 			T_MIN = 174;
 			T_MAX = 256;
 		}
-		std::vector<Blob> currentFrameBlobs;
+		vector<Blob> currentFrameBlobs;
 
 		//read the current frame
 		if (!capture.read(frame)) {
@@ -203,19 +197,19 @@ void analyseVideo(char* video) {
 
 		Mat imgFrame2Copy = frame.clone();
 		MOG2Bs->apply(frame, MOG2FgMask);
-		blur(MOG2FgMask, MOG2FgMask, cv::Size(B_MIN, B_MAX), cv::Point(-1, -1));
-		threshold(MOG2FgMask, MOG2FgMask, T_MIN, T_MAX, cv::THRESH_BINARY);
+		blur(MOG2FgMask, MOG2FgMask, Size(B_MIN, B_MAX), Point(-1, -1));
+		threshold(MOG2FgMask, MOG2FgMask, T_MIN, T_MAX, THRESH_BINARY);
 
-		std::vector<std::vector<cv::Point> > contours;
-		cv::Mat imgThreshCopy = MOG2FgMask.clone();
-		cv::findContours(imgThreshCopy, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+		vector<vector<Point> > contours;
+		Mat imgThreshCopy = MOG2FgMask.clone();
+		findContours(imgThreshCopy, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 		//drawAndShowContours(fgMaskMOG2.size(), contours, "imgContours");
 		
 		
-		std::vector<std::vector<cv::Point> > convexHulls(contours.size());
+		vector<vector<Point> > convexHulls(contours.size());
 
 		for (unsigned int i = 0; i < contours.size(); i++) {
-			cv::convexHull(contours[i], convexHulls[i]);
+			convexHull(contours[i], convexHulls[i]);
 		}
 
 		//drawAndShowContours(fgMaskMOG2.size(), convexHulls, "imgConvexHulls");
@@ -247,24 +241,19 @@ void analyseVideo(char* video) {
 
 		drawBlobInfoOnImage(blobs, imgFrame2Copy);
 		drawBlobBottomOnImage(blobs, imgFrame2Copy);
-		cv::imshow("imgFrame2Copy", imgFrame2Copy);
+		imshow("imgFrame2Copy", imgFrame2Copy);
 
 		drawBlobBottomOnImage(blobs, imageCourtPlayersCopyblack);
 		//drawBlobInfoOnImage(blobs, imageCourtPlayersCopy);
-		cv::imshow("tracklines", imageCourtPlayersCopyblack);
-		
-		
-
-
-
-		
+		imshow("tracklines", imageCourtPlayersCopyblack);
+	
 		// Homography
 		Mat homoFrame = imageCourtPlayersCopyblack.clone();
 		Mat homoFrameClone = imageCourtPlayersCopyblack.clone();
 		// Create a black image
-		Mat black(homoFrameClone.rows, homoFrameClone.cols, homoFrameClone.type(), cv::Scalar::all(0));
+		Mat black(homoFrameClone.rows, homoFrameClone.cols, homoFrameClone.type(), Scalar::all(0));
 		// create a white mask
-		Mat mask(homoFrameClone.rows, homoFrameClone.cols, CV_8UC1, cv::Scalar(0));
+		Mat mask(homoFrameClone.rows, homoFrameClone.cols, CV_8UC1, Scalar(0));
 
 		// Get the coordiantes of the polygon (court area we want) from the mouse clicks
 		vector< vector<Point> >  co_ordinates;
@@ -287,7 +276,7 @@ void analyseVideo(char* video) {
 		ROI_result = dst1 + dst2;
 
 		namedWindow("black", WINDOW_AUTOSIZE);
-		cv::imshow("black", ROI_result);
+		imshow("black", ROI_result);
 
 	
 
@@ -297,13 +286,13 @@ void analyseVideo(char* video) {
 		warpPerspective(ROI_result, HomoResult, H, imageCourtTemplate.size());
 		// Warp the logo image to change its perspective
 		namedWindow("RESULTS", WINDOW_AUTOSIZE);
-		cv::imshow("RESULTS", HomoResult);
+		imshow("RESULTS", HomoResult);
 
 		Mat transparentResult;
 
 		imageCourtTemplate.copyTo(transparentResult, HomoResult);
 		namedWindow("trans", WINDOW_AUTOSIZE);
-		cv::imshow("trans", transparentResult);
+		imshow("trans", transparentResult);
 		//showFinal(imageCourtTemplate, HomoResult);
 
 
@@ -319,11 +308,6 @@ void analyseVideo(char* video) {
 	//delete capture object
 	capture.release();
 }
-
-
-
-
-
 
 void createTrackbar(void) {
 	namedWindow("Trackbars", WINDOW_AUTOSIZE);
@@ -345,20 +329,19 @@ void createTrackbar(void) {
 }
 
 
-void drawAndShowContours(cv::Size imageSize, std::vector<std::vector<cv::Point> > contours, std::string strImageName) {
-	cv::Mat image(imageSize, CV_8UC3, SCALAR_BLACK);
+void drawAndShowContours(Size imageSize, vector<vector<Point> > contours, string strImageName) {
+	Mat image(imageSize, CV_8UC3, SCALAR_BLACK);
 
-	cv::drawContours(image, contours, -1, SCALAR_WHITE, -1);
+	drawContours(image, contours, -1, SCALAR_WHITE, -1);
 
-	//cv::imshow(strImageName, image);
+	//imshow(strImageName, image);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-void drawAndShowContours(cv::Size imageSize, std::vector<Blob> blobs, std::string strImageName) {
+void drawAndShowContours(Size imageSize, vector<Blob> blobs, string strImageName) {
 
-	cv::Mat image(imageSize, CV_8UC3, SCALAR_BLACK);
+	Mat image(imageSize, CV_8UC3, SCALAR_BLACK);
 
-	std::vector<std::vector<cv::Point> > contours;
+	vector<vector<Point> > contours;
 
 	for (auto &blob : blobs) {
 		if (blob.blnStillBeingTracked == true) {
@@ -366,55 +349,62 @@ void drawAndShowContours(cv::Size imageSize, std::vector<Blob> blobs, std::strin
 		}
 	}
 
-	cv::drawContours(image, contours, -1, SCALAR_WHITE, -1);
+	drawContours(image, contours, -1, SCALAR_WHITE, -1);
 
-	//cv::imshow(strImageName, image);
+	//imshow(strImageName, image);
 }
 
-double distanceBetweenPoints(cv::Point point1, cv::Point point2) {
-
+/// <summary>
+/// Find the hypotinues bettween two points
+/// c^2 = a^2 + b^2
+/// </summary>
+/// <param name="point1"></param>
+/// <param name="point2"></param>
+/// <returns>Distance bettween two points or c</returns>
+double distanceBetweenPoints(Point point1, Point point2) {
+	//Find length a and b
 	int intX = abs(point1.x - point2.x);
 	int intY = abs(point1.y - point2.y);
-
+	
+	//c^2 = a^2 + b^2
 	return(sqrt(pow(intX, 2) + pow(intY, 2)));
 }
 
 
-void drawBlobInfoOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy) {
-
+void drawBlobInfoOnImage(vector<Blob> &blobs, Mat &imgFrame2Copy) {
 	for (unsigned int i = 0; i < blobs.size(); i++) {
 
 		if (blobs[i].blnStillBeingTracked == true) {
 			
-			cv::rectangle(imgFrame2Copy, blobs[i].currentBoundingRect, SCALAR_RED, 2);
+			rectangle(imgFrame2Copy, blobs[i].currentBoundingRect, SCALAR_RED, 2);
 			
 			int intFontFace = CV_FONT_HERSHEY_SIMPLEX;
 			double dblFontScale = blobs[i].dblCurrentDiagonalSize / 60.0;
-			int intFontThickness = (int)std::round(dblFontScale * 1.0);
+			int intFontThickness = (int)round(dblFontScale * 1.0);
 
-			//cv::putText(imgFrame2Copy, std::to_string(i), blobs[i].centerPositions.back(), intFontFace, dblFontScale, SCALAR_GREEN, intFontThickness);
+			//putText(imgFrame2Copy, to_string(i), blobs[i].centerPositions.back(), intFontFace, dblFontScale, SCALAR_GREEN, intFontThickness);
 		}
 	}
 }
 
-void drawBlobBottomOnImage(std::vector<Blob> &blobs, cv::Mat &imgFrame2Copy) {
+void drawBlobBottomOnImage(vector<Blob> &blobs, Mat &imgFrame2Copy) {
 
 	for (unsigned int i = 0; i < blobs.size(); i++) {
 
 		if (blobs[i].blnStillBeingTracked == true) {
 			Point points = blobs[i].getBottom();
-			cv::circle(imgFrame2Copy, points, 5, SCALAR_RED, FILLED);
+			circle(imgFrame2Copy, points, 5, SCALAR_RED, FILLED);
 			int intFontFace = CV_FONT_HERSHEY_SIMPLEX;
 			double dblFontScale = blobs[i].dblCurrentDiagonalSize / 60.0;
-			int intFontThickness = (int)std::round(dblFontScale * 1.0);
+			int intFontThickness = (int)round(dblFontScale * 1.0);
 
-			//cv::putText(imgFrame2Copy, std::to_string(i), blobs[i].centerPositions.back(), intFontFace, dblFontScale, SCALAR_GREEN, intFontThickness);
+			//putText(imgFrame2Copy, to_string(i), blobs[i].centerPositions.back(), intFontFace, dblFontScale, SCALAR_GREEN, intFontThickness);
 		}
 	}
 }
 
 
-void addBlobToExistingBlobs(Blob &currentFrameBlob, std::vector<Blob> &existingBlobs, int &intIndex) {
+void addBlobToExistingBlobs(Blob &currentFrameBlob, vector<Blob> &existingBlobs, int &intIndex) {
 
 	existingBlobs[intIndex].currentContour = currentFrameBlob.currentContour;
 	existingBlobs[intIndex].currentBoundingRect = currentFrameBlob.currentBoundingRect;
@@ -428,8 +418,7 @@ void addBlobToExistingBlobs(Blob &currentFrameBlob, std::vector<Blob> &existingB
 	existingBlobs[intIndex].blnCurrentMatchFoundOrNewBlob = true;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-void addNewBlob(Blob &currentFrameBlob, std::vector<Blob> &existingBlobs) {
+void addNewBlob(Blob &currentFrameBlob, vector<Blob> &existingBlobs) {
 
 	currentFrameBlob.blnCurrentMatchFoundOrNewBlob = true;
 
@@ -437,7 +426,7 @@ void addNewBlob(Blob &currentFrameBlob, std::vector<Blob> &existingBlobs) {
 }
 
 
-void matchCurrentFrameBlobsToExistingBlobs(std::vector<Blob> &existingBlobs, std::vector<Blob> &currentFrameBlobs) {
+void matchCurrentFrameBlobsToExistingBlobs(vector<Blob> &existingBlobs, vector<Blob> &currentFrameBlobs) {
 
 	for (auto &existingBlob : existingBlobs) {
 

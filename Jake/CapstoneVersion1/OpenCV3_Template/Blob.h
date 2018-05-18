@@ -7,33 +7,30 @@
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc/imgproc.hpp>
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 class Blob {
 public:
-	// member variables ///////////////////////////////////////////////////////////////////////////
+	//Blob Bounding Boxes
 	std::vector<cv::Point> currentContour;
-	
 	cv::Rect currentBoundingRect;
-
 	std::vector<cv::Point> centerPositions;
 
-
-
+	//Blob Size
 	double dblCurrentDiagonalSize;
 	double dblCurrentAspectRatio;
 
+	//Boolian Specifiers
 	bool blnCurrentMatchFoundOrNewBlob;
-
 	bool blnStillBeingTracked;
 
+	//Other
 	int intNumOfConsecutiveFramesWithoutAMatch;
-
 	cv::Point predictedNextPosition;
 
-	// function prototypes ////////////////////////////////////////////////////////////////////////
+	//Initalize Blob
 	Blob(std::vector<cv::Point> _contour);
-	void predictNextPosition(void);
 
+	//Public Functions
+	void predictNextPosition(void);
 	cv::Point getBottom(void);
 };
 
