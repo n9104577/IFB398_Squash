@@ -51,7 +51,7 @@ Ptr<BackgroundSubtractor> MOG2Bs; //MOG2 Background Subtractor
 int keyboardInput; // Keyboard Input
 
 // Track Bar variables 
-const bool usingTrackbar = true;
+const bool usingTrackbar = false;
 const string trackbarWindowName = "Trackbars";
 int B_MIN = 1; // Blur Min
 int B_MAX = 30; // Blur Max
@@ -105,7 +105,7 @@ int main(void) {
 	if (usingTrackbar) createTrackbar();
 
 	// create Background Subtractor - MOG2 approach
-	MOG2Bs = createBackgroundSubtractorMOG2();
+	MOG2Bs = createBackgroundSubtractorMOG2().dynamicCast<BackgroundSubtractor>();
 	
 	// Homography
 	namedWindow("Display window", WINDOW_AUTOSIZE);// Create a window for display.
@@ -124,10 +124,12 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
-
-void showFinal(Mat src1, Mat src2)
-{
-
+/// <summary>
+/// 
+/// </summary>
+/// <param name="src1"></param>
+/// <param name="src2"></param>
+void showFinal(Mat src1, Mat src2) {
 	Mat gray, gray_inv, src1final, src2final;
 	cvtColor(src2, gray, CV_BGR2GRAY);
 	threshold(gray, gray, 0, 255, CV_THRESH_BINARY);
@@ -142,7 +144,14 @@ void showFinal(Mat src1, Mat src2)
 
 }
 
-
+/// <summary>
+/// Gets X, Y of Mouse
+/// </summary>
+/// <param name="e"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="d"></param>
+/// <param name="ptr"></param>
 void on_mouse(int e, int x, int y, int d, void *ptr) {
 
 	if (e == EVENT_LBUTTONDOWN) {
@@ -161,6 +170,10 @@ void on_mouse(int e, int x, int y, int d, void *ptr) {
 	
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="video">Video File Path</param>
 void analyseVideo(char* video) {
 	//create the capture object
 	VideoCapture capture(video);
@@ -194,7 +207,6 @@ void analyseVideo(char* video) {
 
 		resize(frame, frame, Size(768, 576));
 		//update the background model
-
 		Mat imgFrame2Copy = frame.clone();
 		MOG2Bs->apply(frame, MOG2FgMask);
 		blur(MOG2FgMask, MOG2FgMask, Size(B_MIN, B_MAX), Point(-1, -1));
@@ -204,8 +216,6 @@ void analyseVideo(char* video) {
 		Mat imgThreshCopy = MOG2FgMask.clone();
 		findContours(imgThreshCopy, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 		//drawAndShowContours(fgMaskMOG2.size(), contours, "imgContours");
-		
-		
 		vector<vector<Point> > convexHulls(contours.size());
 
 		for (unsigned int i = 0; i < contours.size(); i++) {
@@ -235,7 +245,6 @@ void analyseVideo(char* video) {
 		}
 
 		drawAndShowContours(MOG2FgMask.size(), blobs, "imgBlobs");
-
 
 		imgFrame2Copy = frame.clone();          // get another copy of frame 2 since we changed the previous frame 2 copy in the processing above
 
@@ -277,9 +286,6 @@ void analyseVideo(char* video) {
 
 		namedWindow("black", WINDOW_AUTOSIZE);
 		imshow("black", ROI_result);
-
-	
-
 
 		Mat HomoResult;
 		
@@ -358,8 +364,8 @@ void drawAndShowContours(Size imageSize, vector<Blob> blobs, string strImageName
 /// Find the hypotinues bettween two points
 /// c^2 = a^2 + b^2
 /// </summary>
-/// <param name="point1"></param>
-/// <param name="point2"></param>
+/// <param name="point1">X, Y point</param>
+/// <param name="point2">X, Y point</param>
 /// <returns>Distance bettween two points or c</returns>
 double distanceBetweenPoints(Point point1, Point point2) {
 	//Find length a and b
