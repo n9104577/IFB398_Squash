@@ -52,7 +52,7 @@ Ptr<BackgroundSubtractor> MOG2Bs; //MOG2 Background Subtractor
 int keyboardInput; // Keyboard Input
 
 // Track Bar variables 
-const bool usingTrackbar = true;
+const bool usingTrackbar = false;
 const string trackbarWindowName = "Trackbars";
 int B_MIN = 5; // Blur Min
 int B_MAX = 30; // Blur Max
@@ -130,7 +130,7 @@ int main(void) {
 	if (usingTrackbar) createTrackbar();
 
 	// create Background Subtractor - MOG2 approach
-	MOG2Bs = createBackgroundSubtractorMOG2();
+	MOG2Bs = createBackgroundSubtractorMOG2().dynamicCast<BackgroundSubtractor>();
 	
 	// Homography
 	
@@ -168,8 +168,39 @@ int main(void) {
 	return EXIT_SUCCESS;
 }
 
+<<<<<<< HEAD
 
 
+=======
+/// <summary>
+/// 
+/// </summary>
+/// <param name="src1"></param>
+/// <param name="src2"></param>
+void showFinal(Mat src1, Mat src2) {
+	Mat gray, gray_inv, src1final, src2final;
+	cvtColor(src2, gray, CV_BGR2GRAY);
+	threshold(gray, gray, 0, 255, CV_THRESH_BINARY);
+	//adaptiveThreshold(gray,gray,255,ADAPTIVE_THRESH_MEAN_C,THRESH_BINARY,5,4);
+	bitwise_not(gray, gray_inv);
+	src1.copyTo(src1final, gray_inv);
+	src2.copyTo(src2final, gray);
+	Mat finalImage = src1final + src2final;
+	namedWindow("output", WINDOW_AUTOSIZE);
+	imshow("output", finalImage);
+	
+
+}
+
+/// <summary>
+/// Gets X, Y of Mouse
+/// </summary>
+/// <param name="e"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="d"></param>
+/// <param name="ptr"></param>
+>>>>>>> 232a30fafeba3af67640d30a6c6d9a58ab0b49e1
 void on_mouse(int e, int x, int y, int d, void *ptr) {
 
 	if (e == EVENT_LBUTTONDOWN) {
@@ -188,6 +219,10 @@ void on_mouse(int e, int x, int y, int d, void *ptr) {
 	
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="video">Video File Path</param>
 void analyseVideo(char* video) {
 	//create the capture object
 	VideoCapture capture(video);
@@ -222,8 +257,11 @@ void analyseVideo(char* video) {
 
 		resize(frame, frame, Size(768, 576));
 		//update the background model
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 232a30fafeba3af67640d30a6c6d9a58ab0b49e1
 		Mat imgFrame2Copy = frame.clone();
 		MOG2Bs->apply(frame, MOG2FgMask);
 		
@@ -257,10 +295,14 @@ void analyseVideo(char* video) {
 		vector<vector<Point> > contours;
 		Mat imgThreshCopy = MOG2FgMask.clone();
 		findContours(imgThreshCopy, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+<<<<<<< HEAD
 		if (showimgContours) { drawAndShowContours(MOG2FgMask.size(), contours, "imgContours"); }
 		
 		
 		// get the convex hull of the contours
+=======
+		//drawAndShowContours(fgMaskMOG2.size(), contours, "imgContours");
+>>>>>>> 232a30fafeba3af67640d30a6c6d9a58ab0b49e1
 		vector<vector<Point> > convexHulls(contours.size());
 		for (unsigned int i = 0; i < contours.size(); i++) {
 			convexHull(contours[i], convexHulls[i]);
@@ -292,8 +334,14 @@ void analyseVideo(char* video) {
 			matchCurrentFrameBlobsToExistingBlobs(blobs, currentFrameBlobs);
 		}
 
+<<<<<<< HEAD
 		// show the blobs if we want
 		if (showimgBlobs) { drawAndShowContours(MOG2FgMask.size(), blobs, "imgBlobs"); }
+=======
+		drawAndShowContours(MOG2FgMask.size(), blobs, "imgBlobs");
+
+		imgFrame2Copy = frame.clone();          // get another copy of frame 2 since we changed the previous frame 2 copy in the processing above
+>>>>>>> 232a30fafeba3af67640d30a6c6d9a58ab0b49e1
 
 		// get a copy of the original frame and draw the rectangle and center point on it
 		imgFrame2Copy = frame.clone();       
@@ -334,9 +382,15 @@ void analyseVideo(char* video) {
 		dst1.copyTo(dst2, mask);
 		ROI_result = dst1 + dst2;
 
+<<<<<<< HEAD
 		//namedWindow("black", WINDOW_AUTOSIZE);
 		if (showROI_result) { imshow("black", ROI_result); }
 		
+=======
+		namedWindow("black", WINDOW_AUTOSIZE);
+		imshow("black", ROI_result);
+
+>>>>>>> 232a30fafeba3af67640d30a6c6d9a58ab0b49e1
 		Mat HomoResult;
 		
 		warpPerspective(ROI_result, HomoResult, H, imageCourtTemplate.size());
@@ -420,8 +474,8 @@ void drawAndShowContours(Size imageSize, vector<Blob> blobs, string strImageName
 /// Find the hypotinues bettween two points
 /// c^2 = a^2 + b^2
 /// </summary>
-/// <param name="point1"></param>
-/// <param name="point2"></param>
+/// <param name="point1">X, Y point</param>
+/// <param name="point2">X, Y point</param>
 /// <returns>Distance bettween two points or c</returns>
 double distanceBetweenPoints(Point point1, Point point2) {
 	//Find length a and b
