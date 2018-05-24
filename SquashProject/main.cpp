@@ -17,7 +17,7 @@ using namespace std;
 const int FRAME_WIDTH = 640;
 const int FRAME_HEIGHT = 480;
 
-const int MIN_OBJECT_AREA = 2000;
+const int MIN_OBJECT_AREA = 3000;
 
 //Slider Control
 const bool usingMorph = true;
