@@ -20,7 +20,7 @@ const int FRAME_HEIGHT = 480;
 const int MIN_OBJECT_AREA = 2000;
 
 //Slider Control
-const bool usingMorph = false;
+const bool usingMorph = true;
 
 //Varibles
 Ptr<BackgroundSubtractor> model;
@@ -106,7 +106,7 @@ void trackFilteredObject(Mat PImage, Mat &frame) {
 
 int main(void) {
 	//File Paths
-	string file = "CVideo 1080.mp4";
+	string file = "squash.mp4";
 	string bg = "Background.mp4";
 
 	//Varialbes

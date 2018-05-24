@@ -15,9 +15,9 @@ Blob::Blob(std::vector<cv::Point> _contour) {
 	//Declaring X Y Points
 	currentCenter.x = (currentBoundingRect.x + currentBoundingRect.x + currentBoundingRect.width) / 2;
 	currentCenter.y = (currentBoundingRect.y + currentBoundingRect.y + currentBoundingRect.height) / 2;
-	currentBottom.x = currentCenter.x;
-	currentBottom.y = (currentBoundingRect.y + currentBoundingRect.y + currentBoundingRect.height);
-
+	currentBottom.x = (currentBoundingRect.x + currentBoundingRect.x + currentBoundingRect.width) / 2;
+	currentBottom.y = (currentBoundingRect.y + currentBoundingRect.height);
+	
 	centerPositions.push_back(currentCenter);
 	dblCurrentDiagonalSize = sqrt(pow(currentBoundingRect.width, 2) + pow(currentBoundingRect.height, 2));
 	dblCurrentAspectRatio = (float)currentBoundingRect.width / (float)currentBoundingRect.height;
@@ -29,11 +29,11 @@ Blob::Blob(std::vector<cv::Point> _contour) {
 }
 
 cv::Point Blob::getBottom() {
-	return currentCenter;
+	return currentBottom;
 }
 
 /// <summary>
-/// You have to explain wtf this does
+/// You have to explain wtf this does - idk what it does
 /// </summary>
 void Blob::predictNextPosition(void) {
 	//Initalizing Variables 
@@ -46,11 +46,14 @@ void Blob::predictNextPosition(void) {
 	if (numPos == 1) {
 		predictedNextPosition.x = centerPositions.back().x;
 		predictedNextPosition.y = centerPositions.back().y;
+		
+
 	} else {
 		for (int i = 1; i <= (int)centerPositions.size() - 1; i++) {
 			sumX += (centerPositions[i].x - centerPositions[i - 1].x) * i;
 			sumY += (centerPositions[i].y - centerPositions[i - 1].y) * i;
 			div += i;
+			
 		}
 		//Round Numbers
 		int deltaX = (int)round((float)sumX / div);
@@ -58,6 +61,7 @@ void Blob::predictNextPosition(void) {
 
 		predictedNextPosition.x = centerPositions.back().x + deltaX;
 		predictedNextPosition.y = centerPositions.back().y + deltaY;
+	
 	}
 }
 

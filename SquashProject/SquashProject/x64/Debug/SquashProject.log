@@ -1,9 +1,9 @@
 ﻿  main.cpp
-c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(51): warning C4474: 'sprintf' : too many arguments passed for format string
-  c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(51): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(52): warning C4474: 'sprintf' : too many arguments passed for format string
-  c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(52): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
-c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(93): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(99): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-c:\users\myles\onedrive\documents\git\ifb398 - captstone\squashproject\main.cpp(100): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
-  SquashProject.vcxproj -> C:\Users\myles\OneDrive\Documents\Git\IFB398 - Captstone\SquashProject\x64\Debug\SquashProject.exe
+c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(51): warning C4474: 'sprintf' : too many arguments passed for format string
+  c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(51): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(52): warning C4474: 'sprintf' : too many arguments passed for format string
+  c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(52): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(93): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(99): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+c:\users\jake\documents\github\ifb398_squash\squashproject\main.cpp(100): warning C4244: '=': conversion from 'double' to 'int', possible loss of data
+  SquashProject.vcxproj -> C:\Users\Jake\Documents\GitHub\IFB398_Squash\SquashProject\x64\Debug\SquashProject.exe

@@ -1,2 +1,10 @@
-﻿  Blob.cpp
-  OpenCV3_Template.vcxproj -> C:\Users\myles\OneDrive\Documents\Git\IFB398 - Captstone\Jake\CapstoneVersion1\x64\Debug\OpenCV3_Template.exe
+﻿  main.cpp
+c:\users\jake\documents\github\ifb398_squash\jake\capstoneversion1\opencv3_template\main.cpp(362): warning C4474: 'sprintf' : too many arguments passed for format string
+  c:\users\jake\documents\github\ifb398_squash\jake\capstoneversion1\opencv3_template\main.cpp(362): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+c:\users\jake\documents\github\ifb398_squash\jake\capstoneversion1\opencv3_template\main.cpp(362): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
+c:\users\jake\documents\github\ifb398_squash\jake\capstoneversion1\opencv3_template\main.cpp(363): warning C4474: 'sprintf' : too many arguments passed for format string
+  c:\users\jake\documents\github\ifb398_squash\jake\capstoneversion1\opencv3_template\main.cpp(363): note: placeholders and their parameters expect 0 variadic arguments, but 1 were provided
+c:\users\jake\documents\github\ifb398_squash\jake\capstoneversion1\opencv3_template\main.cpp(363): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\stdio.h(1772): note: see declaration of 'sprintf'
+  OpenCV3_Template.vcxproj -> C:\Users\Jake\Documents\GitHub\IFB398_Squash\Jake\CapstoneVersion1\x64\Debug\OpenCV3_Template.exe
